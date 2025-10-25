@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard | Smart Timetable</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #001f3f, #0074D9);
+      color: #fff;
+      font-family: 'Poppins', sans-serif;
+      min-height: 100vh;
+    }
+    .navbar {
+      background: rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(10px);
+    }
+    .card {
+      border: none;
+      border-radius: 1rem;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    }
+    .btn-custom {
+      background: #00bcd4;
+      color: #fff;
+      border-radius: 30px;
+      transition: 0.3s;
+    }
+    .btn-custom:hover {
+      background: #0097a7;
+    }
+    .timetable-table th {
+      background-color: #006bb3;
+      color: #fff;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="#">🧠 LogicWeavers</a>
+      <div class="ms-auto d-flex align-items-center">
+        <span class="me-3 fw-semibold" id="userInfo"></span>
+        <button class="btn btn-danger btn-sm" onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Dashboard -->
+  <section class="container py-5">
+    <div class="text-center mb-4">
+      <h2 id="dashboardTitle" class="fw-bold"></h2>
+      <p class="text-light">Smart Scheduling • QR Attendance • NEP 2020 Aligned</p>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="card p-4 text-center bg-light text-dark">
+          <h5 class="fw-bold">Today’s Summary</h5>
+          <p>Classes Scheduled: 5</p>
+          <button class="btn btn-custom mt-2" onclick="generateQR()">Generate QR Attendance</button>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card p-4 text-center bg-light text-dark">
+          <h5 class="fw-bold">Swap Requests</h5>
+          <p>Request or Approve class swaps</p>
+          <button class="btn btn-custom mt-2" onclick="showSwapModal()">Request Swap</button>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card p-4 text-center bg-light text-dark">
+          <h5 class="fw-bold">Voice Assistant</h5>
+          <p>“Show my next class”</p>
+          <button class="btn btn-custom mt-2" onclick="alert('Voice Assistant Coming Soon!')">Activate</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mt-5 bg-light text-dark p-3">
+      <h5 class="fw-bold text-center">Weekly Timetable</h5>
+      <div class="table-responsive">
+        <table class="table table-bordered timetable-table text-center mt-3">
+          <thead>
+            <tr>
+              <th>Day</th>
+              <th>9:00 - 10:00</th>
+              <th>10:00 - 11:00</th>
+              <th>11:15 - 12:15</th>
+              <th>1:15 - 2:15</th>
+              <th>2:15 - 3:15</th>
+            </tr>
+          </thead>
+          <tbody id="timetableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Swap Modal -->
+  <div class="modal fade" id="swapModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content text-dark">
+        <div class="modal-header">
+          <h5 class="modal-title">Request Class Swap</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <label class="form-label">Choose Date</label>
+          <input type="date" class="form-control mb-2">
+          <label class="form-label">Swap With Faculty</label>
+          <select class="form-select mb-3">
+            <option>Dr. Kumar</option>
+            <option>Prof. Anjali</option>
+            <option>Dr. Meena</option>
+          </select>
+          <button class="btn btn-custom w-100" data-bs-dismiss="modal" onclick="alert('Swap request sent!')">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const timetable = {
+      Monday: ["Maths", "AI", "Break", "DBMS", "Python"],
+      Tuesday: ["IoT", "ML", "Break", "OS", "Sports"],
+      Wednesday: ["DBMS", "AI", "Break", "Maths", "Mini Project"],
+      Thursday: ["CyberSec", "IoT", "Break", "ML", "DBMS"],
+      Friday: ["AI", "DBMS", "Break", "Mini Project", "Seminar"]
+    };
+
+    const role = localStorage.getItem('userRole');
+    const user = localStorage.getItem('userName');
+
+    if (!role || !user) {
+      window.location.href = "login.html";
+    }
+
+    document.getElementById('userInfo').innerText = `${user} (${role.toUpperCase()})`;
+    document.getElementById('dashboardTitle').innerText = `${role.charAt(0).toUpperCase() + role.slice(1)} Dashboard`;
+
+    const timetableBody = document.getElementById('timetableBody');
+    for (const [day, subjects] of Object.entries(timetable)) {
+      let row = `<tr><td>${day}</td>`;
+      subjects.forEach(sub => row += `<td>${sub}</td>`);
+      row += `</tr>`;
+      timetableBody.innerHTML += row;
+    }
+
+    function generateQR() {
+      alert("QR Attendance Generated Successfully ✅");
+    }
+
+    function showSwapModal() {
+      const modal = new bootstrap.Modal(document.getElementById('swapModal'));
+      modal.show();
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "login.html";
+    }
+  </script>
+</body>
+</html>
